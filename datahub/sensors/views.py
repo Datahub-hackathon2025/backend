@@ -30,7 +30,7 @@ class LightViewSet(viewsets.ModelViewSet):
 def generate_new_point(last_point):
     point = DataPoint()
     point.datetime = last_point.datetime + datetime.timedelta(seconds=2)
-    point.value = last_point.value + random.uniform(last_point.value - last_point.value*0.5, last_point.value+last_point.value*0.5) * random.choice([-1, 1, 0])
+    point.value = last_point.value + random.uniform(0, abs(last_point.value)*0.5) * random.choice([-1, 1, 0])
     point.sensor = last_point.sensor
     return point
 
