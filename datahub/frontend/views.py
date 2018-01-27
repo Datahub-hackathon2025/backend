@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 def index(request):
-    return render(request, 'frontend/index.html', context={})
+    return redirect('/static/frontend/index.html', permanent=True)

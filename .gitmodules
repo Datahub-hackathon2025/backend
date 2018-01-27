@@ -1,0 +1,6 @@
+[submodule "datahub/templates/frontend"]
+	path = datahub/templates/frontend
+	url = https://github.com/Datahub-hackathon2025/frontend.git
+[submodule "datahub/static/frontend"]
+	path = datahub/static/frontend
+	url = https://github.com/Datahub-hackathon2025/frontend.git
