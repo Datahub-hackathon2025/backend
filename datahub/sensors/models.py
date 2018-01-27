@@ -11,10 +11,16 @@ class Sensor(models.Model):
     def current_value(self):
         return DataPoint.objects.filter(sensor__pk=self.pk).order_by("-datetime").first()
 
-class Light(Sensor):
+class Light(models.Model):
+    name = models.CharField(max_length=255, blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
     state_on = models.BooleanField()
 
-class ParkingLot(Sensor):
+class ParkingLot(models.Model):
+    name = models.CharField(max_length=255, blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
     state_free = models.BooleanField()
 
 class DataPoint(models.Model):
