@@ -7,9 +7,9 @@ from rest_framework.response import Response
 import datetime 
 import random
 import pytz
-PLOT_STEP = datetime.timedelta(seconds=10)
+PLOT_STEP = datetime.timedelta(seconds=5)
 LOCAL_TZ = pytz.timezone('Europe/Moscow')
-GENERATE_POINTS_SINCE = datetime.timedelta(minutes=4)
+GENERATE_POINTS_SINCE = datetime.timedelta(minutes=2)
 
 class SensorViewSet(mixins.CreateModelMixin,
                                 mixins.ListModelMixin,
@@ -32,10 +32,29 @@ class LightViewSet(viewsets.ModelViewSet):
     queryset = Light.objects.all()
     serializer_class = LightSerializer
 
-def generate_new_point(last_point, dt):
+def generate_new_point(last_point, dt, sensor_type):
     point = DataPoint()
     point.datetime = dt
-    point.value = last_point.value + ( random.uniform(-abs(last_point.value)*0.3, abs(last_point.value)*0.3) ) + random.uniform(-1, 1)
+
+    old_val = last_point.value
+    random_walk = random.uniform(-abs(old_val)*0.3, abs(old_val)*0.3)
+    noise = random.uniform(-old_val*0.05, old_val*0.05)
+
+    if (sensor_type == 'pollution'):
+        random_walk = random.uniform(-abs(old_val)*0.05, abs(old_val)*0.05)
+        noise = random.uniform(-old_val*0.02, old_val*0.02)
+
+    if old_val == 0:
+        noise = random.uniform(-1, 1)
+
+    print(old_val, random_walk, noise, old_val + random_walk + noise)
+    point.value =  old_val + random_walk + noise
+    
+    if (sensor_type == 'temp'):
+        point.value = max(min(point.value, -10), -30)
+    else:
+        point.value = max(min(point.value, 100), 0)
+
     point.sensor = last_point.sensor
     return point
 
@@ -43,18 +62,25 @@ def create_missing_points_till_now(sensor):
     now = datetime.datetime.now().replace(tzinfo=None)
     print('Cur time', now)
     last_point = DataPoint.objects.filter(sensor__pk = sensor.pk).order_by('-datetime').first()
-    dt = last_point.datetime.replace(tzinfo=None)
-    print('DT', dt.replace(tzinfo=None))
-    dt = max(now - GENERATE_POINTS_SINCE, dt)
-    print('Need to make points since', dt)
-    while dt < (now - PLOT_STEP):
-        dt += PLOT_STEP
-        new_point = generate_new_point(last_point, dt)
-        new_point.save()
-        print('Created missing point', new_point.datetime)
-        last_point = new_point
-        
+    if last_point:
+        dt = last_point.datetime.astimezone(LOCAL_TZ).replace(tzinfo=None) + PLOT_STEP
+        print('DT', dt)
+        dt = max(now - GENERATE_POINTS_SINCE, dt)
+        print('Need to make points since', dt, 'till', (now - PLOT_STEP))
+        while dt < (now - PLOT_STEP):
+            new_point = generate_new_point(last_point, dt, sensor.sensor_type)
+            new_point.save()
+            print('Created missing point', new_point.datetime)
+            last_point = new_point
+            dt += PLOT_STEP
+    else:
 
+        point = DataPoint()
+        point.sensor = sensor
+        point.datetime = now
+        point.value = random.uniform(0, 100)
+        point.save()
+        print('Created initial point', point.datetime)
 
 class DataPointViewSet(mixins.CreateModelMixin,
                                 mixins.ListModelMixin,
@@ -71,7 +97,6 @@ class DataPointViewSet(mixins.CreateModelMixin,
         if not sensor:
             raise
         create_missing_points_till_now(sensor)
-
         queryset = self.queryset.filter(sensor__pk = sensor.id).order_by('-datetime')[:30]
         serializer = DataPointSerializer(queryset, many=True)
         return Response(serializer.data)
