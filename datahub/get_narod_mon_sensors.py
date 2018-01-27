@@ -4,9 +4,6 @@ import os, sys
 import django
 
 #ekb_bounds = (56.965128, 60.324427, 56.700188, 60.907979)
-ekb_bounds = (57.0, 60.3, 56.7, 60.9)
-ekb_bounds = (57.0, 56.7, 60.3, 60.9)
-ekb_bounds = (57.0, 56.7, 60.3, 60.9)
 ekb_bounds = (56.7, 60.3, 57.0, 60.9)
 sensors_link = 'http://narodmon.com/api/mapBounds?bounds={},{},{},{}&uuid=2f7dd1485da9c1928671737a4d198a27&api_key=msUdQM3ZCrZKm&lang=en&limit=50'.format(*ekb_bounds)
 
