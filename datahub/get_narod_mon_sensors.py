@@ -1,6 +1,8 @@
 import requests
 import datetime
 import os, sys
+import django
+from sensors.models import Sensor, DataPoint
 #ekb_bounds = (56.965128, 60.324427, 56.700188, 60.907979)
 ekb_bounds = (57.0, 60.3, 56.7, 60.9)
 ekb_bounds = (57.0, 56.7, 60.3, 60.9)
@@ -14,9 +16,9 @@ json = requests.get(sensors_link).json()
 print(json)
 sys.path.append('datahub')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'datahub.settings'
-import django
+
 django.setup()
-from sensors.models import Sensor, DataPoint
+
 
 sensor_type_choices = [('temp', 'temp'), ('water', 'water'), ('pollution', 'pollution'), ('electricity', 'electricity'), ('street_light', 'street_light'), ('parking_lot', 'parking_lot')]
 for item in json['devices']:

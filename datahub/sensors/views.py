@@ -6,9 +6,22 @@ from rest_framework import mixins
 from rest_framework.response import Response
 import datetime 
 import random
-class SensorViewSet(viewsets.ModelViewSet):
+class SensorViewSet(mixins.CreateModelMixin,
+                                mixins.ListModelMixin,
+                                mixins.RetrieveModelMixin,
+                                viewsets.GenericViewSet):
     queryset = Sensor.objects.all()
     serializer_class = SensorSerializer
+    def list(self, request):
+        types = self.request.query_params.get('types', None)
+        if not types:
+            types = ['temp', 'water', 'pollution', 'electricity', 'street_light', 'parking_lot']
+        else:
+            types = types.split(',')
+        queryset = self.queryset.filter(sensor_type__in = types)
+        serializer = SensorSerializer(queryset, many=True)
+        return Response(serializer.data)
+
 
 class LightViewSet(viewsets.ModelViewSet):
     queryset = Light.objects.all()
