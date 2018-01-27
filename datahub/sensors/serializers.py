@@ -15,4 +15,4 @@ class LightSerializer(serializers.ModelSerializer):
 class DataPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataPoint
-        fields = ('value', 'datetime', 'sensor')
+        fields = ('value', 'datetime')
